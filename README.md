@@ -56,15 +56,15 @@
 
 10. Set up the database:
     ```bash
-    python database_setup.py
+    python catalogdb_setup.py
     ```
 
-13. Insert dummy values.
+13. Insert dummy values:
     ```bash
     python fakedb.py
     ```
 
-14. Run this application:
+14. Run `application.py`:
     ```bash
     python application.py
     ```
