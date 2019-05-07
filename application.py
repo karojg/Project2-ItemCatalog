@@ -29,9 +29,9 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+
+# Code from Udacity FullStack WebDev - Section 3.Servers, Authorization, and CRUD
 # Create anti-forgery state token
-
-
 @app.route('/login')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
