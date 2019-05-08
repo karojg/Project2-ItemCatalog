@@ -13,11 +13,11 @@
             <div class="aligner-item--fixed-inner new-cat">
                 <form action="#" method='post'>
                     <p>Title:</p>
-                    <input type='text' size='30' name='title'>
+                    <input type='text' size='30' name='title' required>
                     <p>Description:</p>
-                    <input type='text' size='30' name='description'>
+                    <input type='text' size='30' name='description' required>
                     <p>Category:</p>
-                    <select name="category_id">
+                    <select name="category_id" required>
                         {% for category in categories %}
                         <option value="{{category.id}}" SELECTED>{{category.title}}</option>"
                         {% endfor %}
