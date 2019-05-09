@@ -72,12 +72,17 @@ def getUserID(email):
         flash("error")
 
 
-# GCONNECT - Grant Access
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
-    # Validate state token.
-    # Confirm that the token the client sends to the server
-    # matches the token that the server sent to the client
+    """ Method: gconnect to access via google sign -in Grant Access
+        - Validates the state token.
+        - Confirm that the token the client sends to the server
+        matches the token that the server sent to the client
+
+    Returns:
+        Login status, if successful or failed.
+    """
+
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -152,17 +157,17 @@ def gconnect():
     if not user_id:
         user_id = createUser(login_session)
         login_session['user_id'] = user_id
-
+    # Returns Welcome screen with login details.
     output = ''
     output += '<h1>Welcome, '
     output += login_session['username']
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " (style = "width: 300px; height: 300px;\
-                    border-radius: 150px; \
-                    -webkit-border-radius: 150px;\
-                    -moz-border-radius: 150px;")> '
+    output += ' "style = "width: 300px; height: 300px;\
+                border-radius: 150px; \
+                -webkit-border-radius: 150px;\
+                -moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     print("done!")
     return output
@@ -171,7 +176,15 @@ def gconnect():
 # DISCONNECT - Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
+    """ Method: gdisconnect to disconnect and close session in application
+    - User details are deleted from session
+
+    Returns:
+        If disconnection was succesful or not via status code
+    """
+    # retrieves access token stores in login_session
     access_token = login_session.get('access_token')
+    # if user not connected
     if access_token is None:
         print('Access Token is None')
         response = make_response(json.dumps(
@@ -187,6 +200,7 @@ def gdisconnect():
     result = h.request(url, 'GET')[0]
     print('result is ')
     print(result)
+    # if access token is validated delete user's login_session details
     if result['status'] == '200':
         del login_session['access_token']
         del login_session['gplus_id']
@@ -197,6 +211,7 @@ def gdisconnect():
         response = make_response(json.dumps('Successfully disconnected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
+    # else notify inhability to revoke
     else:
         response = make_response(
                    json.dumps('Failed to revoke token for given user.', 400))
@@ -207,6 +222,11 @@ def gdisconnect():
 # JSON API
 @app.route('/catalog.json')
 def showCategoriesJSON():
+    """ Method: JSON catalog endpoints
+
+    Returns:
+        json file with all catalog information
+    """
     all_data = session.query(Category)
     return jsonify(categories=[
            category.serialize for category in all_data.all()])
@@ -214,29 +234,47 @@ def showCategoriesJSON():
 
 @app.route('/catalog/items/json')
 def showCategoryItemsJSON():
+    """ Method: JSON items endpoints
+
+    Returns:
+        json file with all items information
+    """
     items = session.query(CategoryItem).all()
     return jsonify(items=[r.serialize for r in items])
 
 
 @app.route('/catalog/<int:category_id>/<int:item_id>/json')
 def showItemDetailsJSON(category_id, item_id):
+    """ Method: JSON catalog specific item endpoints
+
+    Returns:
+        json file with specific item information
+    """
     category = session.query(Category).filter_by(id=category_id).first()
     item = session.query(CategoryItem).filter_by(id=item_id).first()
     return jsonify(item=[item.serialize])
 
 
-# Shows all categories
 @app.route('/')
 @app.route('/catalog')
 def showCategories():
+    """ Method: show all categories
+
+    Returns:
+        Categories template will all the availabe categories
+    """
     category = session.query(Category).all()
     return render_template('categories.html', category=category)
 
 
-# Shows all category items
 @app.route('/catalog/<int:category_id>/')
 @app.route('/catalog/<int:category_id>/items')
 def showCategoryItems(category_id):
+    """ Method: show all category items
+
+    Returns:
+        Category Item template will all the categoriy items
+    """
     category = session.query(Category).filter_by(id=category_id).first()
     items = session.query(CategoryItem).filter_by(
         category_id=category_id).all()
@@ -244,9 +282,13 @@ def showCategoryItems(category_id):
                            items=items)
 
 
-# Shows category item details
 @app.route('/catalog/<int:category_id>/<int:item_id>')
 def showItemDetails(category_id, item_id):
+    """ Method: shows category item details
+
+    Returns:
+        Item Description template will all item details
+    """
     category = session.query(Category).filter_by(id=category_id).first()
     item = session.query(CategoryItem).filter_by(id=item_id).first()
     return render_template('itemDescription.html', category=category,
@@ -256,6 +298,12 @@ def showItemDetails(category_id, item_id):
 # Add categoy items
 @app.route('/catalog/new/', methods=['GET', 'POST'])
 def addItemDetails():
+    """ Method: adds new items to catalog
+
+    Returns:
+        On GET: Form to create new user
+        On POST: Redirect to main page after successful item creation
+    """
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
@@ -280,6 +328,15 @@ def addItemDetails():
 @app.route('/catalog/<int:category_id>/<int:item_id>/edit',
            methods=['GET', 'POST'])
 def editItemDetails(category_id, item_id):
+    """ Method: edit items, based on user access
+
+    Returns:
+        If authentication and authorization is meet allows to edit item
+        Else redirects to login page
+
+        On GET: form to update item
+        On POST: main page, after item was upated
+    """
     editedItem = session.query(CategoryItem).filter_by(id=item_id).first()
     creator = getUserInfo(editedItem.user_id)
     if 'username' not in (login_session or creator.id !=
@@ -308,6 +365,14 @@ def editItemDetails(category_id, item_id):
 @app.route('/catalog/<int:category_id>/<int:item_id>/delete',
            methods=['GET', 'POST'])
 def deleteItemDetails(category_id, item_id):
+    """ Method: delete items, based on user access
+
+    Returns:
+        If authentication and authorization is meet allows to delete item
+        Else redirects to login page
+        On GET: form to delete item
+        On POST: main page, after item was deleted
+    """
     itemToDelete = session.query(CategoryItem).filter_by(id=item_id).first()
     creator = getUserInfo(itemToDelete.user_id)
     if 'username' not in (login_session or creator.id !=
