@@ -5,9 +5,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
+# factory function, that returns a base class
 Base = declarative_base()
 
 
+# Creates table for logged-in Users
 class User(Base):
     __tablename__ = 'user'
 
@@ -17,6 +19,7 @@ class User(Base):
     picture = Column(String(250))
 
 
+# Creates table for Categories
 class Category(Base):
     __tablename__ = 'category'
 
@@ -36,6 +39,7 @@ class Category(Base):
         }
 
 
+# Creates table for specific category items
 class CategoryItem(Base):
     __tablename__ = 'category_item'
 
