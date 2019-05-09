@@ -69,3 +69,14 @@
     python application.py
     ```
 15. Open `http://localhost:5000/` in your favourite Web browser, and enjoy.
+
+## JSON Endpoints
+
+Returns JSON of all categories
+`/catalog.json`
+
+Returns JSON of all category items
+`/catalog/items/json`
+
+Returns JSON of specific category items
+`/catalog/<int:category_id>/<int:item_id>/json`
